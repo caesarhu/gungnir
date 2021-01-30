@@ -1,0 +1,20 @@
+{:paths ["src/clj" "src/cljc"]
+
+ :aliases {:dev {:extra-deps {orchestra/orchestra {:mvn/version "2021.01.01-1"}
+                              codox-theme-rdash/codox-theme-rdash   {:mvn/version "0.1.2"}}}
+           :test {:extra-deps {lambdaisland/kaocha {:mvn/version "1.0.732"}}}}
+
+ :deps {org.clojure/clojure                 {:mvn/version "1.10.2"}
+        seancorfield/next.jdbc              {:mvn/version "1.1.613"}
+        org.postgresql/postgresql           {:mvn/version "42.2.18"}
+        honeysql/honeysql                   {:mvn/version "1.0.444"}
+        metosin/malli {:git/url "https://github.com/metosin/malli.git"
+                       :sha "87bda76223821b3bbe4b722ce0642a991ee92660"}
+        differ/differ                       {:mvn/version "0.3.3"}
+        hikari-cp/hikari-cp                 {:mvn/version "2.13.0"}
+        kwrooijen/clj-database-url          {:mvn/version "0.0.1"}
+        org.clojure/tools.logging           {:mvn/version "1.1.0"}
+        nilenso/honeysql-postgres           {:mvn/version "0.2.6"}
+        ragtime/ragtime                     {:mvn/version "0.8.0"}
+        caesarhu/unqualify {:git/url "https://github.com/caesarhu/unqualify.git"
+                            :sha "f07af40ba6f994571bb5f7402cfa91dfdb06b28e"}}}

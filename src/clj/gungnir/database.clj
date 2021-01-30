@@ -19,6 +19,8 @@
    [malli.core :as m]
    [next.jdbc :as jdbc]
    [next.jdbc.date-time]
+   [honeysql-postgres.helpers :as psqlh]   ;; add by caesarhu
+   [caesarhu.unqualify :refer [unqualify]] ;; add by caesarhu
    [next.jdbc.result-set :as result-set])
   (:import (java.sql SQLException)
            (org.postgresql.jdbc PgArray)))
@@ -102,8 +104,8 @@ using either using the `gungnir.database/set-datasource!` or
     (reduce (partial add-belongs-to datasource primary-key) $ belongs-to)))
 
 (defn- get-relation [^clojure.lang.PersistentHashSet select
-                    ^clojure.lang.PersistentArrayMap properties
-                    ^clojure.lang.Keyword type]
+                     ^clojure.lang.PersistentArrayMap properties
+                     ^clojure.lang.Keyword type]
   (when (= #{:*} select)
     (get properties type {})))
 
@@ -264,6 +266,34 @@ using either using the `gungnir.database/set-datasource!` or
        (if (:changeset/errors result)
          result
          (process-query-row {:select '(:*)} datasource result))))))
+
+;;; add by caesarhu
+
+(defn upsert-sql
+  [table row conflict]
+  (-> (q/insert-into table)
+      (q/values [row])
+      (psqlh/upsert (apply psqlh/do-update-set
+                           (psqlh/on-conflict {} (unqualify conflict))
+                           (->> (keys row)
+                                (map unqualify))))))
+
+(defn upsert!
+  "Upsert a row based on the `changeset` provided. This function assumes
+  that the `:changeset/result` key does not have a primary-key with a
+  values. Returns the inserted row on succes. On failure return the
+  `changeset` with an updated `:changeset/errors` key."
+  ([changeset conflict] (upsert! changeset conflict *datasource*))
+  ([{:changeset/keys [model errors result] :as changeset} conflict datasource]
+   (if errors
+     changeset
+     (let [sql (upsert-sql (gungnir.model/table model) (record->insert-values result) conflict)
+           res (execute-one! sql changeset datasource)]
+       (if (:changeset/errors res)
+         res
+         (process-query-row {:select '(:*)} datasource res))))))
+
+;;;
 
 (s/fdef update!
   :args (s/alt
